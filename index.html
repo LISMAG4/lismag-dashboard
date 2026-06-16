@@ -1,325 +1,372 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Projek Lismag</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Projek Lismag – Soil Temperature Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:0 0 40px}
+  :root {
+    --bg:      #0b1120;
+    --surface: #131d30;
+    --card:    #192339;
+    --border:  #243050;
+    --accent:  #22d3a5;
+    --warn:    #f59e0b;
+    --danger:  #ef4444;
+    --cold:    #60a5fa;
+    --text:    #e2e8f0;
+    --muted:   #64748b;
+    --mono:    'JetBrains Mono', monospace;
+    --sans:    'Space Grotesk', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* TOP BAR */
-.topbar{background:#161b22;border-bottom:1px solid #21262d;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
-.topbar-left{display:flex;align-items:center;gap:10px}
-.topbar-icon{width:34px;height:34px;background:#1d9e75;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
-.topbar-title{font-size:15px;font-weight:600;color:#e6edf3}
-.topbar-sub{font-size:11px;color:#7d8590;margin-top:1px}
-.status-pill{display:flex;align-items:center;gap:6px;background:#21262d;border-radius:20px;padding:5px 12px;font-size:12px;color:#7d8590}
-.dot{width:8px;height:8px;border-radius:50%;background:#21262d;transition:background .3s}
-.dot.on{background:#3fb950}
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent) 0%, #0e9f75 100%);
+    display: grid; place-items: center; font-size: 18px;
+  }
+  .brand h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em; }
+  .brand span { font-size: .78rem; color: var(--muted); display: block; margin-top: 1px; }
+  .status-pill { display: flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 500; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); transition: background .4s; }
+  .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+  .dot.error  { background: var(--danger); }
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.5 } }
 
-/* TABS */
-.tabs{display:flex;gap:2px;padding:12px 16px 0;border-bottom:1px solid #21262d;background:#161b22}
-.tab{font-size:12px;color:#7d8590;padding:6px 12px;border-radius:6px 6px 0 0;cursor:pointer;border:1px solid transparent;border-bottom:none;margin-bottom:-1px}
-.tab.active{color:#58a6ff;background:#0d1117;border-color:#21262d;border-bottom-color:#0d1117}
+  .refresh-info { font-size: .72rem; color: var(--muted); margin-top: 2px; }
 
-/* CONTENT */
-.content{padding:16px}
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 
-/* SUHU HIGHLIGHT */
-.suhu-highlight{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.sh-card{background:#1d9e75;border-radius:10px;padding:14px 16px}
-.sh-card.object{background:#1565c0}
-.sh-label{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:4px}
-.sh-value{font-size:28px;font-weight:700;color:#fff;line-height:1}
-.sh-unit{font-size:14px;font-weight:400}
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; }
+  .card-label { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .big-val { font-family: var(--mono); font-size: 2.6rem; font-weight: 600; line-height: 1; color: var(--text); }
+  .big-val span { font-size: 1.1rem; color: var(--muted); margin-left: 4px; }
 
-/* GAUGE ROW */
-.gauge-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.gauge-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center}
-.gauge-label{font-size:11px;color:#7d8590;margin-bottom:10px}
-.gauge-wrap{position:relative;width:100px;height:60px;margin:0 auto 6px}
-.gauge-wrap canvas{width:100%!important;height:auto!important}
-.gauge-val{font-size:15px;font-weight:600;color:#e6edf3;margin-top:4px}
-.gauge-minmax{display:flex;justify-content:space-between;font-size:10px;color:#7d8590;padding:0 4px}
+  .gauge-wrap { position: relative; width: 100%; display: flex; justify-content: center; margin-top: 10px; }
+  .gauge-svg { width: 130px; height: 75px; overflow: visible; }
 
-/* CHART */
-.chart-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
-.card-label{font-size:11px;color:#7d8590;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.card-label i{font-size:14px}
-.legend{display:flex;gap:12px;margin-bottom:10px}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#7d8590}
-.leg-dot{width:8px;height:8px;border-radius:50%}
+  .chart-card { margin-bottom: 24px; }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chart-title { font-size: .95rem; font-weight: 600; }
+  .legend { display: flex; gap: 16px; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--muted); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+  canvas#tempChart { width: 100% !important; height: 220px !important; }
 
-/* AI CARD */
-.ai-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
-.ai-text{font-size:13px;color:#c9d1d9;line-height:1.7;min-height:48px}
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* VALIDASI */
-.val-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
-.val-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #21262d;font-size:13px;color:#7d8590}
-.val-row:last-child{border-bottom:none}
-.val-row span{color:#e6edf3;font-weight:500}
-.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
-.badge.valid{background:#0d2d1a;color:#3fb950}
-.badge.warn{background:#2d1f00;color:#d29922}
-.badge.err{background:#2d0f0f;color:#f85149}
+  .treatment-list { list-style: none; margin-top: 4px; }
+  .treatment-list li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .88rem; line-height: 1.4; }
+  .treatment-list li:last-child { border-bottom: none; }
+  .t-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px; background: rgba(34,211,165,.12); color: var(--accent); display: grid; place-items: center; font-size: .72rem; font-weight: 700; }
 
-/* LANDSAT INPUT */
-.landsat-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
-.landsat-inner{display:flex;align-items:center;gap:10px;margin-top:8px}
-.landsat-inner input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:16px;padding:8px 12px;text-align:center}
-.landsat-inner input:focus{outline:none;border-color:#1d9e75}
-.landsat-note{font-size:11px;color:#7d8590;margin-top:6px}
+  .val-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .val-item { background: rgba(255,255,255,.03); border-radius: 10px; padding: 14px 16px; }
+  .val-item .label { font-size: .7rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .val-item .value { font-family: var(--mono); font-size: 1.25rem; font-weight: 600; }
+  .badge { display: inline-block; margin-top: 12px; padding: 5px 14px; border-radius: 20px; font-size: .78rem; font-weight: 700; letter-spacing: .05em; }
+  .badge.valid   { background: rgba(34,211,165,.15); color: var(--accent); }
+  .badge.check   { background: rgba(245,158,11,.15);  color: var(--warn); }
+  .badge.invalid { background: rgba(239,68,68,.15);   color: var(--danger); }
 
-/* TOMBOL */
-.btn-refresh{width:100%;padding:12px;background:#21262d;border:1px solid #30363d;border-radius:10px;color:#c9d1d9;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-bottom:8px}
-.btn-refresh:hover{background:#30363d}
-.last-update{text-align:center;font-size:11px;color:#484f58}
+  .input-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .inp { flex: 1; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 8px; padding: 9px 14px; font-family: var(--mono); font-size: 1rem; color: var(--text); outline: none; transition: border .2s; }
+  .inp:focus { border-color: var(--accent); }
+  .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-family: var(--sans); font-size: .85rem; font-weight: 600; background: var(--accent); color: #0b1120; transition: opacity .2s; }
+  .btn:hover { opacity: .85; }
 
-.err-box{background:#2d0f0f;color:#f85149;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none}
-.spinning{animation:spin 1s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
+  /* loading skeleton */
+  .skeleton { background: linear-gradient(90deg, #1e2d48 25%, #243050 50%, #1e2d48 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; height: 2.6rem; width: 120px; }
+  @keyframes shimmer { 0%{ background-position:200% 0 } 100%{ background-position:-200% 0 } }
+
+  /* error banner */
+  .err-banner { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); border-radius: 10px; padding: 12px 16px; font-size: .82rem; color: var(--danger); margin-bottom: 20px; display: none; }
+
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; max-width: 320px; font-size: .85rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,.4); transform: translateY(80px); opacity: 0; transition: all .4s cubic-bezier(.22,1,.36,1); z-index: 999; }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast .t-title { font-weight: 700; margin-bottom: 3px; }
+
+  @media (max-width: 768px) { .kpi-row { grid-template-columns: 1fr 1fr; } .bottom-row { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .kpi-row { grid-template-columns: 1fr; } header { padding: 14px 16px; } main { padding: 20px 12px; } }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-icon"><i class="ti ti-leaf"></i></div>
+<header>
+  <div class="brand">
+    <div class="brand-icon">🌿</div>
     <div>
-      <div class="topbar-title">Projek Lismag</div>
-      <div class="topbar-sub">Monitoring Suhu Tanah</div>
+      <h1>Projek Lismag</h1>
+      <span>Soil Temperature Monitor · MLX90614 + ESP32</span>
     </div>
   </div>
-  <div class="status-pill">
-    <div class="dot" id="dot"></div>
-    <span id="conn-label">Memuat...</span>
+  <div>
+    <div class="status-pill">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">Menghubungkan...</span>
+    </div>
+    <div class="refresh-info" id="lastUpdate">Belum ada data</div>
   </div>
-</div>
+</header>
 
-<div class="tabs">
-  <div class="tab active">Live</div>
-</div>
+<main>
+  <div class="err-banner" id="errBanner">⚠️ Gagal mengambil data dari Blynk. Pastikan ESP32 menyala dan token benar.</div>
 
-<div class="content">
-
-  <div class="suhu-highlight">
-    <div class="sh-card">
-      <div class="sh-label">Suhu Ambient</div>
-      <div class="sh-value" id="v0-big">—<span class="sh-unit">°C</span></div>
+  <div class="kpi-row">
+    <div class="card">
+      <div class="card-label">Suhu Ambient</div>
+      <div class="big-val" id="ambientVal"><div class="skeleton"></div></div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 130 75">
+          <path d="M10,70 A60,60 0 0,1 120,70" fill="none" stroke="#243050" stroke-width="10" stroke-linecap="round"/>
+          <path id="gaugeAmbient" d="M10,70 A60,60 0 0,1 120,70" fill="none" stroke="#22d3a5" stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset 1s ease"/>
+        </svg>
+      </div>
     </div>
-    <div class="sh-card object">
-      <div class="sh-label">Suhu Object</div>
-      <div class="sh-value" id="v1-big">—<span class="sh-unit">°C</span></div>
-    </div>
-  </div>
 
-  <div class="gauge-row">
-    <div class="gauge-card">
-      <div class="gauge-label">Suhu Ambient</div>
-      <div class="gauge-wrap"><canvas id="gauge0"></canvas></div>
-      <div class="gauge-val" id="v0-gauge">—°C</div>
-      <div class="gauge-minmax"><span>0</span><span>100</span></div>
+    <div class="card">
+      <div class="card-label">Suhu Objek (Tanah)</div>
+      <div class="big-val" id="objectVal"><div class="skeleton"></div></div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 130 75">
+          <path d="M10,70 A60,60 0 0,1 120,70" fill="none" stroke="#243050" stroke-width="10" stroke-linecap="round"/>
+          <path id="gaugeObject" d="M10,70 A60,60 0 0,1 120,70" fill="none" stroke="#22d3a5" stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset 1s ease,stroke 1s"/>
+        </svg>
+      </div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-label">Suhu Object</div>
-      <div class="gauge-wrap"><canvas id="gauge1"></canvas></div>
-      <div class="gauge-val" id="v1-gauge">—°C</div>
-      <div class="gauge-minmax"><span>0</span><span>100</span></div>
-    </div>
-  </div>
 
-  <div class="chart-card">
-    <div class="card-label"><i class="ti ti-chart-line"></i> Grafik Suhu Ambient & Object</div>
-    <div class="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#f85149"></div>Suhu Object</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#58a6ff"></div>Suhu Ambient</div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div class="card-label">Input Nilai LST Landsat</div>
+        <div class="big-val" id="landsatDisplay">—<span>°C</span></div>
+      </div>
+      <div class="input-row">
+        <input class="inp" type="number" id="landsatInput" placeholder="misal: 25.0" step="0.1" />
+        <button class="btn" onclick="applyLandsat()">Set</button>
+      </div>
     </div>
-    <canvas id="lineChart" height="140"></canvas>
-  </div>
-
-  <div class="ai-card">
-    <div class="card-label"><i class="ti ti-bulb"></i> Treatment Tanah (AI)</div>
-    <div class="ai-text" id="v2">Menunggu data dari ESP32...</div>
   </div>
 
-  <div class="landsat-card">
-    <div class="card-label"><i class="ti ti-satellite"></i> Input Nilai LST Landsat</div>
-    <div class="landsat-inner">
-      <button onclick="adjustLandsat(-1)" style="background:#21262d;border:1px solid #30363d;border-radius:8px;color:#e6edf3;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-      <input type="number" id="landsat-input" value="0" step="0.1" min="0" max="100"/>
-      <button onclick="adjustLandsat(1)" style="background:#21262d;border:1px solid #30363d;border-radius:8px;color:#e6edf3;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+  <div class="card chart-card">
+    <div class="chart-header">
+      <div class="chart-title">Grafik Suhu Ambient &amp; Object</div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#22d3a5"></div>Suhu Object</div>
+        <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Suhu Ambient</div>
+      </div>
     </div>
-    <div class="landsat-note">Nilai Landsat terakhir dari Blynk: <span id="v4-val">—</span> °C</div>
+    <canvas id="tempChart"></canvas>
   </div>
 
-  <div class="val-card">
-    <div class="card-label" style="justify-content:space-between">
-      <span><i class="ti ti-check"></i> Hasil Validasi</span>
-      <span class="badge" id="v5-badge"></span>
+  <div class="bottom-row">
+    <div class="card">
+      <div class="card-label">Rekomendasi Tanaman</div>
+      <ul class="treatment-list" id="treatmentList">
+        <li><div class="t-num">–</div><span>Menunggu data dari sensor...</span></li>
+      </ul>
     </div>
-    <div class="val-row"><div><i class="ti ti-device-analytics" style="margin-right:5px;font-size:14px"></i>Sensor</div><span id="v5-sensor">—</span></div>
-    <div class="val-row"><div><i class="ti ti-satellite" style="margin-right:5px;font-size:14px"></i>Landsat</div><span id="v5-landsat">—</span></div>
-    <div class="val-row"><div><i class="ti ti-arrows-diff" style="margin-right:5px;font-size:14px"></i>Selisih</div><span id="v5-selisih">—</span></div>
+
+    <div class="card">
+      <div class="card-label">Hasil Validasi Sensor vs Landsat</div>
+      <div class="val-grid">
+        <div class="val-item"><div class="label">Sensor</div><div class="value" id="vSensor">—</div></div>
+        <div class="val-item"><div class="label">Landsat</div><div class="value" id="vLandsat">—</div></div>
+        <div class="val-item"><div class="label">Selisih</div><div class="value" id="vSelisih">—</div></div>
+        <div class="val-item"><div class="label">Status</div><div class="value" id="vStatus">—</div></div>
+      </div>
+      <div id="valBadge"></div>
+    </div>
   </div>
+</main>
 
-  <div class="err-box" id="err-box">Gagal mengambil data. Pastikan ESP32 menyala dan terhubung ke internet.</div>
+<div id="toast"><div class="t-title" id="toastTitle"></div><div id="toastMsg"></div></div>
 
-  <button class="btn-refresh" onclick="fetchAll()">
-    <i class="ti ti-refresh" id="refresh-icon"></i> Perbarui Data
-  </button>
-  <div class="last-update" id="last-update"></div>
-
-</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const AUTH = "zy6XkbUg3_hugNLlcKd6Bq3l2a2dlHJG";
-const BASE = "https://blynk.cloud/external/api";
+// ── KONFIGURASI – ganti jika token berubah ──────────────────
+const BLYNK_TOKEN  = "zy6XkbUg3_hugNLlcKd6Bq3l2a2dlHJG";
+const BLYNK_SERVER = "https://blynk.cloud";
+const FETCH_INTERVAL = 3000; // ms – fetch tiap 3 detik
 
-const historyAmbient = [];
-const historyObject  = [];
-const historyLabels  = [];
+// Virtual pin mapping (sesuai kode ESP32)
+const PIN = { ambient: "V0", object: "V1", treatment: "V2", validasi: "V5", koneksi: "V6" };
 
-let lineChart, gauge0Chart, gauge1Chart;
+// ── State ───────────────────────────────────────────────────
+const state = {
+  ambient: null, object: null, landsat: null,
+  notifHighSent: false, notifLowSent: false,
+  labels: [], ambientData: [], objectData: [],
+  fetchOk: false,
+};
 
-function makeGauge(id, color) {
-  const ctx = document.getElementById(id).getContext("2d");
-  return new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      datasets: [{
-        data: [0, 100],
-        backgroundColor: [color, "#21262d"],
-        borderWidth: 0,
-        circumference: 180,
-        rotation: 270
-      }]
+// ── Chart setup ─────────────────────────────────────────────
+const ctx = document.getElementById('tempChart').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: state.labels,
+    datasets: [
+      { label:'Suhu Object',  data: state.objectData,  borderColor:'#22d3a5', backgroundColor:'rgba(34,211,165,.08)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
+      { label:'Suhu Ambient', data: state.ambientData, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.05)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color:'#64748b', maxTicksLimit:8 }, grid: { color:'#1e2d48' } },
+      y: { ticks: { color:'#64748b', callback: v => v+'°' }, grid: { color:'#1e2d48' }, suggestedMin:15, suggestedMax:50 },
     },
-    options: { cutout:"72%", plugins:{legend:{display:false},tooltip:{enabled:false}}, animation:{duration:600} }
-  });
+  },
+});
+
+// ── Blynk API fetch ─────────────────────────────────────────
+async function fetchPin(pin) {
+  const url = `${BLYNK_SERVER}/external/api/get?token=${BLYNK_TOKEN}&${pin}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  return parseFloat(text);
 }
 
-function updateGauge(chart, val) {
-  const clamped = Math.min(Math.max(val, 0), 100);
-  chart.data.datasets[0].data = [clamped, 100 - clamped];
-  chart.update();
-}
-
-function makeLineChart() {
-  const ctx = document.getElementById("lineChart").getContext("2d");
-  return new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: historyLabels,
-      datasets: [
-        { label:"Suhu Object",  data: historyObject,  borderColor:"#f85149", backgroundColor:"rgba(248,81,73,0.1)", tension:0.4, fill:true, pointRadius:3, borderWidth:2 },
-        { label:"Suhu Ambient", data: historyAmbient, borderColor:"#58a6ff", backgroundColor:"rgba(88,166,255,0.08)", tension:0.4, fill:true, pointRadius:3, borderWidth:2 }
-      ]
-    },
-    options: {
-      responsive:true,
-      plugins:{ legend:{display:false}, tooltip:{mode:"index",intersect:false} },
-      scales:{
-        x:{ ticks:{color:"#7d8590",font:{size:10}}, grid:{color:"#21262d"} },
-        y:{ ticks:{color:"#7d8590",font:{size:10}}, grid:{color:"#21262d"} }
-      },
-      animation:{duration:400}
-    }
-  });
-}
-
-async function getPin(pin) {
-  const r = await fetch(`${BASE}/get?token=${AUTH}&${pin}`);
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
-
-function parseValidasi(str) {
-  if (!str || str==="0") return null;
-  const parts = str.split("|").map(s=>s.trim());
-  const res = {};
-  parts.forEach(p=>{
-    if (p.startsWith("Sensor:"))  res.sensor  = p.replace("Sensor:","").trim();
-    if (p.startsWith("Landsat:")) res.landsat = p.replace("Landsat:","").trim();
-    if (p.startsWith("Selisih:")) res.selisih = p.replace("Selisih:","").trim();
-    if (["VALID","PERLU DICEK","TIDAK VALID"].includes(p)) res.status = p;
-  });
-  return res;
-}
-
-function adjustLandsat(delta) {
-  const inp = document.getElementById("landsat-input");
-  inp.value = (parseFloat(inp.value)||0) + delta;
-}
-
-async function fetchAll() {
-  const icon = document.getElementById("refresh-icon");
-  icon.classList.add("spinning");
-  document.getElementById("err-box").style.display="none";
-
+async function fetchAllPins() {
   try {
-    const [r0,r1,r2,r4,r5,r6] = await Promise.all([
-      getPin("v0"),getPin("v1"),getPin("v2"),
-      getPin("v4"),getPin("v5"),getPin("v6")
+    const [ambient, object] = await Promise.all([
+      fetchPin(PIN.ambient),
+      fetchPin(PIN.object),
     ]);
 
-    const v0 = parseFloat(r0[0]);
-    const v1 = parseFloat(r1[0]);
-    const v4 = parseFloat(r4[0]);
-    const connected = r6[0]==="1";
+    if (isNaN(ambient) || isNaN(object)) throw new Error("Data NaN");
 
-    const fmt = v => isNaN(v) ? "—" : v.toFixed(1);
+    updateUI(ambient, object);
+    setOnline(true);
+    document.getElementById('errBanner').style.display = 'none';
+    document.getElementById('lastUpdate').textContent =
+      'Update: ' + new Date().toLocaleTimeString('id-ID');
 
-    document.getElementById("v0-big").innerHTML   = fmt(v0)+'<span class="sh-unit">°C</span>';
-    document.getElementById("v1-big").innerHTML   = fmt(v1)+'<span class="sh-unit">°C</span>';
-    document.getElementById("v0-gauge").textContent = fmt(v0)+"°C";
-    document.getElementById("v1-gauge").textContent = fmt(v1)+"°C";
-    document.getElementById("v2").textContent     = r2[0]||"Belum ada data dari AI.";
-    document.getElementById("v4-val").textContent = (!v4||v4===0)?"—":fmt(v4);
-
-    if (!isNaN(v0)) updateGauge(gauge0Chart, v0);
-    if (!isNaN(v1)) updateGauge(gauge1Chart, v1);
-
-    const now = new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-    if (historyLabels.length >= 20) { historyLabels.shift(); historyAmbient.shift(); historyObject.shift(); }
-    historyLabels.push(now);
-    historyAmbient.push(isNaN(v0)?null:parseFloat(v0.toFixed(1)));
-    historyObject.push(isNaN(v1)?null:parseFloat(v1.toFixed(1)));
-    lineChart.update();
-
-    const dot = document.getElementById("dot");
-    dot.className = "dot"+(connected?" on":"");
-    document.getElementById("conn-label").textContent = connected?"Online":"Offline";
-
-    const val = parseValidasi(r5[0]);
-    if (val) {
-      document.getElementById("v5-sensor").textContent  = val.sensor||"—";
-      document.getElementById("v5-landsat").textContent = val.landsat||"—";
-      document.getElementById("v5-selisih").textContent = val.selisih||"—";
-      const badge = document.getElementById("v5-badge");
-      badge.textContent = val.status||"";
-      badge.className = "badge "+(val.status==="VALID"?"valid":val.status==="PERLU DICEK"?"warn":"err");
-    }
-
-    document.getElementById("last-update").textContent = "Terakhir diperbarui: "+now;
-  } catch(e) {
-    document.getElementById("err-box").style.display="block";
-    document.getElementById("dot").className="dot";
-    document.getElementById("conn-label").textContent="Error";
+  } catch (err) {
+    console.error("Blynk fetch error:", err);
+    setOnline(false);
+    document.getElementById('errBanner').style.display = 'block';
+    document.getElementById('lastUpdate').textContent = 'Gagal update – ' + new Date().toLocaleTimeString('id-ID');
   }
-
-  icon.classList.remove("spinning");
 }
 
-gauge0Chart = makeGauge("gauge0","#1d9e75");
-gauge1Chart = makeGauge("gauge1","#58a6ff");
-lineChart   = makeLineChart();
+// ── Helpers ─────────────────────────────────────────────────
+function tempColor(v) {
+  if (v > 45) return '#ef4444';
+  if (v > 38) return '#f59e0b';
+  if (v >= 25) return '#22d3a5';
+  if (v >= 15) return '#60a5fa';
+  return '#818cf8';
+}
 
-fetchAll();
-setInterval(fetchAll, 10000);
+function setGauge(id, value) {
+  const el = document.getElementById(id);
+  const pct = Math.min(Math.max(value / 60, 0), 1);
+  el.style.strokeDashoffset = 188.5 - pct * 188.5;
+  el.style.stroke = tempColor(value);
+}
+
+function getTreatment(obj) {
+  if (obj > 45) return ['Siram tanah segera','Beri mulsa / penutup tanah','Hindari pemupukan'];
+  if (obj > 38) return ['Siram pagi / sore hari','Tambah mulsa organik','Kurangi paparan sinar matahari'];
+  if (obj >= 25) return ['Kondisi tanah optimal','Lanjutkan perawatan rutin','Pemupukan bisa dilakukan'];
+  if (obj >= 15) return ['Kurangi frekuensi penyiraman','Tambah pupuk organik','Tutup tanah di malam hari'];
+  return ['Lindungi tanaman dari dingin','Hentikan penyiraman','Gunakan plastik mulsa'];
+}
+
+function runValidation() {
+  if (state.object === null || state.landsat === null) return;
+  const selisih = Math.abs(state.object - state.landsat);
+  let status, cls;
+  if (selisih < 2)      { status = 'VALID';       cls = 'valid'; }
+  else if (selisih < 5) { status = 'PERLU DICEK'; cls = 'check'; }
+  else                  { status = 'TIDAK VALID';  cls = 'invalid'; }
+
+  document.getElementById('vSensor').textContent  = state.object.toFixed(1) + '°C';
+  document.getElementById('vLandsat').textContent = state.landsat.toFixed(1) + '°C';
+  document.getElementById('vSelisih').textContent = selisih.toFixed(1) + '°C';
+  document.getElementById('vStatus').textContent  = status;
+  document.getElementById('valBadge').innerHTML   = `<div class="badge ${cls}">${status}</div>`;
+}
+
+function checkNotif(obj) {
+  if (obj > 38 && !state.notifHighSent) {
+    showToast('⚠️ Suhu Tinggi!', `Suhu objek mencapai ${obj.toFixed(1)}°C. Segera siram tanah.`, '#ef4444');
+    state.notifHighSent = true; state.notifLowSent = false;
+  }
+  if (obj < 15 && !state.notifLowSent) {
+    showToast('❄️ Suhu Rendah!', `Suhu objek hanya ${obj.toFixed(1)}°C. Lindungi tanaman.`, '#f59e0b');
+    state.notifLowSent = true; state.notifHighSent = false;
+  }
+  if (obj >= 15 && obj <= 38) { state.notifHighSent = false; state.notifLowSent = false; }
+}
+
+function updateUI(ambient, object) {
+  state.ambient = ambient;
+  state.object  = object;
+
+  document.getElementById('ambientVal').innerHTML = ambient.toFixed(2) + '<span>°C</span>';
+  document.getElementById('objectVal').innerHTML  = object.toFixed(2)  + '<span>°C</span>';
+  setGauge('gaugeAmbient', ambient);
+  setGauge('gaugeObject',  object);
+
+  // Update chart
+  const now = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  if (state.labels.length > 40) {
+    state.labels.shift(); state.ambientData.shift(); state.objectData.shift();
+  }
+  state.labels.push(now);
+  state.ambientData.push(+ambient.toFixed(2));
+  state.objectData.push(+object.toFixed(2));
+  chart.update();
+
+  // Treatment
+  const items = getTreatment(object);
+  document.getElementById('treatmentList').innerHTML =
+    items.map((t,i) => `<li><div class="t-num">${i+1}</div><span>${t}</span></li>`).join('');
+
+  checkNotif(object);
+  runValidation();
+}
+
+function setOnline(on) {
+  document.getElementById('statusDot').className   = 'dot' + (on ? ' online' : ' error');
+  document.getElementById('statusText').textContent = on ? 'Online – Data Blynk' : 'Error koneksi';
+}
+
+function applyLandsat() {
+  const v = parseFloat(document.getElementById('landsatInput').value);
+  if (isNaN(v)) return;
+  state.landsat = v;
+  document.getElementById('landsatDisplay').innerHTML = v.toFixed(1) + '<span>°C</span>';
+  runValidation();
+}
+
+function showToast(title, msg, color) {
+  const t = document.getElementById('toast');
+  t.style.borderLeftColor = color;
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent   = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4500);
+}
+
+// ── Start polling ───────────────────────────────────────────
+fetchAllPins();
+setInterval(fetchAllPins, FETCH_INTERVAL);
 </script>
 </body>
 </html>
