@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Projek Lismag</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;padding:0 0 40px}
+
+/* TOP BAR */
+.topbar{background:#161b22;border-bottom:1px solid #21262d;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:34px;height:34px;background:#1d9e75;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.topbar-title{font-size:15px;font-weight:600;color:#e6edf3}
+.topbar-sub{font-size:11px;color:#7d8590;margin-top:1px}
+.status-pill{display:flex;align-items:center;gap:6px;background:#21262d;border-radius:20px;padding:5px 12px;font-size:12px;color:#7d8590}
+.dot{width:8px;height:8px;border-radius:50%;background:#21262d;transition:background .3s}
+.dot.on{background:#3fb950}
+
+/* TABS */
+.tabs{display:flex;gap:2px;padding:12px 16px 0;border-bottom:1px solid #21262d;background:#161b22}
+.tab{font-size:12px;color:#7d8590;padding:6px 12px;border-radius:6px 6px 0 0;cursor:pointer;border:1px solid transparent;border-bottom:none;margin-bottom:-1px}
+.tab.active{color:#58a6ff;background:#0d1117;border-color:#21262d;border-bottom-color:#0d1117}
+
+/* CONTENT */
+.content{padding:16px}
+
+/* SUHU HIGHLIGHT */
+.suhu-highlight{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sh-card{background:#1d9e75;border-radius:10px;padding:14px 16px}
+.sh-card.object{background:#1565c0}
+.sh-label{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:4px}
+.sh-value{font-size:28px;font-weight:700;color:#fff;line-height:1}
+.sh-unit{font-size:14px;font-weight:400}
+
+/* GAUGE ROW */
+.gauge-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.gauge-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center}
+.gauge-label{font-size:11px;color:#7d8590;margin-bottom:10px}
+.gauge-wrap{position:relative;width:100px;height:60px;margin:0 auto 6px}
+.gauge-wrap canvas{width:100%!important;height:auto!important}
+.gauge-val{font-size:15px;font-weight:600;color:#e6edf3;margin-top:4px}
+.gauge-minmax{display:flex;justify-content:space-between;font-size:10px;color:#7d8590;padding:0 4px}
+
+/* CHART */
+.chart-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
+.card-label{font-size:11px;color:#7d8590;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-label i{font-size:14px}
+.legend{display:flex;gap:12px;margin-bottom:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#7d8590}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+/* AI CARD */
+.ai-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
+.ai-text{font-size:13px;color:#c9d1d9;line-height:1.7;min-height:48px}
+
+/* VALIDASI */
+.val-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
+.val-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #21262d;font-size:13px;color:#7d8590}
+.val-row:last-child{border-bottom:none}
+.val-row span{color:#e6edf3;font-weight:500}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge.valid{background:#0d2d1a;color:#3fb950}
+.badge.warn{background:#2d1f00;color:#d29922}
+.badge.err{background:#2d0f0f;color:#f85149}
+
+/* LANDSAT INPUT */
+.landsat-card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:14px;margin-bottom:12px}
+.landsat-inner{display:flex;align-items:center;gap:10px;margin-top:8px}
+.landsat-inner input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:16px;padding:8px 12px;text-align:center}
+.landsat-inner input:focus{outline:none;border-color:#1d9e75}
+.landsat-note{font-size:11px;color:#7d8590;margin-top:6px}
+
+/* TOMBOL */
+.btn-refresh{width:100%;padding:12px;background:#21262d;border:1px solid #30363d;border-radius:10px;color:#c9d1d9;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-bottom:8px}
+.btn-refresh:hover{background:#30363d}
+.last-update{text-align:center;font-size:11px;color:#484f58}
+
+.err-box{background:#2d0f0f;color:#f85149;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none}
+.spinning{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon"><i class="ti ti-leaf"></i></div>
+    <div>
+      <div class="topbar-title">Projek Lismag</div>
+      <div class="topbar-sub">Monitoring Suhu Tanah</div>
+    </div>
+  </div>
+  <div class="status-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-label">Memuat...</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active">Live</div>
+</div>
+
+<div class="content">
+
+  <div class="suhu-highlight">
+    <div class="sh-card">
+      <div class="sh-label">Suhu Ambient</div>
+      <div class="sh-value" id="v0-big">—<span class="sh-unit">°C</span></div>
+    </div>
+    <div class="sh-card object">
+      <div class="sh-label">Suhu Object</div>
+      <div class="sh-value" id="v1-big">—<span class="sh-unit">°C</span></div>
+    </div>
+  </div>
+
+  <div class="gauge-row">
+    <div class="gauge-card">
+      <div class="gauge-label">Suhu Ambient</div>
+      <div class="gauge-wrap"><canvas id="gauge0"></canvas></div>
+      <div class="gauge-val" id="v0-gauge">—°C</div>
+      <div class="gauge-minmax"><span>0</span><span>100</span></div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">Suhu Object</div>
+      <div class="gauge-wrap"><canvas id="gauge1"></canvas></div>
+      <div class="gauge-val" id="v1-gauge">—°C</div>
+      <div class="gauge-minmax"><span>0</span><span>100</span></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="card-label"><i class="ti ti-chart-line"></i> Grafik Suhu Ambient & Object</div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#f85149"></div>Suhu Object</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#58a6ff"></div>Suhu Ambient</div>
+    </div>
+    <canvas id="lineChart" height="140"></canvas>
+  </div>
+
+  <div class="ai-card">
+    <div class="card-label"><i class="ti ti-bulb"></i> Treatment Tanah (AI)</div>
+    <div class="ai-text" id="v2">Menunggu data dari ESP32...</div>
+  </div>
+
+  <div class="landsat-card">
+    <div class="card-label"><i class="ti ti-satellite"></i> Input Nilai LST Landsat</div>
+    <div class="landsat-inner">
+      <button onclick="adjustLandsat(-1)" style="background:#21262d;border:1px solid #30363d;border-radius:8px;color:#e6edf3;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+      <input type="number" id="landsat-input" value="0" step="0.1" min="0" max="100"/>
+      <button onclick="adjustLandsat(1)" style="background:#21262d;border:1px solid #30363d;border-radius:8px;color:#e6edf3;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+    </div>
+    <div class="landsat-note">Nilai Landsat terakhir dari Blynk: <span id="v4-val">—</span> °C</div>
+  </div>
+
+  <div class="val-card">
+    <div class="card-label" style="justify-content:space-between">
+      <span><i class="ti ti-check"></i> Hasil Validasi</span>
+      <span class="badge" id="v5-badge"></span>
+    </div>
+    <div class="val-row"><div><i class="ti ti-device-analytics" style="margin-right:5px;font-size:14px"></i>Sensor</div><span id="v5-sensor">—</span></div>
+    <div class="val-row"><div><i class="ti ti-satellite" style="margin-right:5px;font-size:14px"></i>Landsat</div><span id="v5-landsat">—</span></div>
+    <div class="val-row"><div><i class="ti ti-arrows-diff" style="margin-right:5px;font-size:14px"></i>Selisih</div><span id="v5-selisih">—</span></div>
+  </div>
+
+  <div class="err-box" id="err-box">Gagal mengambil data. Pastikan ESP32 menyala dan terhubung ke internet.</div>
+
+  <button class="btn-refresh" onclick="fetchAll()">
+    <i class="ti ti-refresh" id="refresh-icon"></i> Perbarui Data
+  </button>
+  <div class="last-update" id="last-update"></div>
+
+</div>
+
+<script>
+const AUTH = "zy6XkbUg3_hugNLlcKd6Bq3l2a2dlHJG";
+const BASE = "https://blynk.cloud/external/api";
+
+const historyAmbient = [];
+const historyObject  = [];
+const historyLabels  = [];
+
+let lineChart, gauge0Chart, gauge1Chart;
+
+function makeGauge(id, color) {
+  const ctx = document.getElementById(id).getContext("2d");
+  return new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      datasets: [{
+        data: [0, 100],
+        backgroundColor: [color, "#21262d"],
+        borderWidth: 0,
+        circumference: 180,
+        rotation: 270
+      }]
+    },
+    options: { cutout:"72%", plugins:{legend:{display:false},tooltip:{enabled:false}}, animation:{duration:600} }
+  });
+}
+
+function updateGauge(chart, val) {
+  const clamped = Math.min(Math.max(val, 0), 100);
+  chart.data.datasets[0].data = [clamped, 100 - clamped];
+  chart.update();
+}
+
+function makeLineChart() {
+  const ctx = document.getElementById("lineChart").getContext("2d");
+  return new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: historyLabels,
+      datasets: [
+        { label:"Suhu Object",  data: historyObject,  borderColor:"#f85149", backgroundColor:"rgba(248,81,73,0.1)", tension:0.4, fill:true, pointRadius:3, borderWidth:2 },
+        { label:"Suhu Ambient", data: historyAmbient, borderColor:"#58a6ff", backgroundColor:"rgba(88,166,255,0.08)", tension:0.4, fill:true, pointRadius:3, borderWidth:2 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{mode:"index",intersect:false} },
+      scales:{
+        x:{ ticks:{color:"#7d8590",font:{size:10}}, grid:{color:"#21262d"} },
+        y:{ ticks:{color:"#7d8590",font:{size:10}}, grid:{color:"#21262d"} }
+      },
+      animation:{duration:400}
+    }
+  });
+}
+
+async function getPin(pin) {
+  const r = await fetch(`${BASE}/get?token=${AUTH}&${pin}`);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+function parseValidasi(str) {
+  if (!str || str==="0") return null;
+  const parts = str.split("|").map(s=>s.trim());
+  const res = {};
+  parts.forEach(p=>{
+    if (p.startsWith("Sensor:"))  res.sensor  = p.replace("Sensor:","").trim();
+    if (p.startsWith("Landsat:")) res.landsat = p.replace("Landsat:","").trim();
+    if (p.startsWith("Selisih:")) res.selisih = p.replace("Selisih:","").trim();
+    if (["VALID","PERLU DICEK","TIDAK VALID"].includes(p)) res.status = p;
+  });
+  return res;
+}
+
+function adjustLandsat(delta) {
+  const inp = document.getElementById("landsat-input");
+  inp.value = (parseFloat(inp.value)||0) + delta;
+}
+
+async function fetchAll() {
+  const icon = document.getElementById("refresh-icon");
+  icon.classList.add("spinning");
+  document.getElementById("err-box").style.display="none";
+
+  try {
+    const [r0,r1,r2,r4,r5,r6] = await Promise.all([
+      getPin("v0"),getPin("v1"),getPin("v2"),
+      getPin("v4"),getPin("v5"),getPin("v6")
+    ]);
+
+    const v0 = parseFloat(r0[0]);
+    const v1 = parseFloat(r1[0]);
+    const v4 = parseFloat(r4[0]);
+    const connected = r6[0]==="1";
+
+    const fmt = v => isNaN(v) ? "—" : v.toFixed(1);
+
+    document.getElementById("v0-big").innerHTML   = fmt(v0)+'<span class="sh-unit">°C</span>';
+    document.getElementById("v1-big").innerHTML   = fmt(v1)+'<span class="sh-unit">°C</span>';
+    document.getElementById("v0-gauge").textContent = fmt(v0)+"°C";
+    document.getElementById("v1-gauge").textContent = fmt(v1)+"°C";
+    document.getElementById("v2").textContent     = r2[0]||"Belum ada data dari AI.";
+    document.getElementById("v4-val").textContent = (!v4||v4===0)?"—":fmt(v4);
+
+    if (!isNaN(v0)) updateGauge(gauge0Chart, v0);
+    if (!isNaN(v1)) updateGauge(gauge1Chart, v1);
+
+    const now = new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    if (historyLabels.length >= 20) { historyLabels.shift(); historyAmbient.shift(); historyObject.shift(); }
+    historyLabels.push(now);
+    historyAmbient.push(isNaN(v0)?null:parseFloat(v0.toFixed(1)));
+    historyObject.push(isNaN(v1)?null:parseFloat(v1.toFixed(1)));
+    lineChart.update();
+
+    const dot = document.getElementById("dot");
+    dot.className = "dot"+(connected?" on":"");
+    document.getElementById("conn-label").textContent = connected?"Online":"Offline";
+
+    const val = parseValidasi(r5[0]);
+    if (val) {
+      document.getElementById("v5-sensor").textContent  = val.sensor||"—";
+      document.getElementById("v5-landsat").textContent = val.landsat||"—";
+      document.getElementById("v5-selisih").textContent = val.selisih||"—";
+      const badge = document.getElementById("v5-badge");
+      badge.textContent = val.status||"";
+      badge.className = "badge "+(val.status==="VALID"?"valid":val.status==="PERLU DICEK"?"warn":"err");
+    }
+
+    document.getElementById("last-update").textContent = "Terakhir diperbarui: "+now;
+  } catch(e) {
+    document.getElementById("err-box").style.display="block";
+    document.getElementById("dot").className="dot";
+    document.getElementById("conn-label").textContent="Error";
+  }
+
+  icon.classList.remove("spinning");
+}
+
+gauge0Chart = makeGauge("gauge0","#1d9e75");
+gauge1Chart = makeGauge("gauge1","#58a6ff");
+lineChart   = makeLineChart();
+
+fetchAll();
+setInterval(fetchAll, 10000);
+</script>
+</body>
+</html>
