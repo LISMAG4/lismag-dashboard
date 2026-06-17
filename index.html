@@ -84,11 +84,9 @@
   .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-family: var(--sans); font-size: .85rem; font-weight: 600; background: var(--accent); color: #0b1120; transition: opacity .2s; }
   .btn:hover { opacity: .85; }
 
-  /* loading skeleton */
   .skeleton { background: linear-gradient(90deg, #1e2d48 25%, #243050 50%, #1e2d48 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; height: 2.6rem; width: 120px; }
   @keyframes shimmer { 0%{ background-position:200% 0 } 100%{ background-position:-200% 0 } }
 
-  /* error banner */
   .err-banner { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); border-radius: 10px; padding: 12px 16px; font-size: .82rem; color: var(--danger); margin-bottom: 20px; display: none; }
 
   #toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; max-width: 320px; font-size: .85rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,.4); transform: translateY(80px); opacity: 0; transition: all .4s cubic-bezier(.22,1,.36,1); z-index: 999; }
@@ -123,7 +121,7 @@
 
   <div class="kpi-row">
     <div class="card">
-      <div class="card-label">Suhu Ambient</div>
+      <div class="card-label">Suhu Ruang</div>
       <div class="big-val" id="ambientVal"><div class="skeleton"></div></div>
       <div class="gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 130 75">
@@ -135,7 +133,7 @@
     </div>
 
     <div class="card">
-      <div class="card-label">Suhu Objek (Tanah)</div>
+      <div class="card-label">Suhu Permukaan</div>
       <div class="big-val" id="objectVal"><div class="skeleton"></div></div>
       <div class="gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 130 75">
@@ -160,10 +158,10 @@
 
   <div class="card chart-card">
     <div class="chart-header">
-      <div class="chart-title">Grafik Suhu Ambient &amp; Object</div>
+      <div class="chart-title">Grafik Suhu Ruang &amp; Permukaan</div>
       <div class="legend">
-        <div class="leg"><div class="leg-dot" style="background:#22d3a5"></div>Suhu Object</div>
-        <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Suhu Ambient</div>
+        <div class="leg"><div class="leg-dot" style="background:#22d3a5"></div>Suhu Permukaan</div>
+        <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Suhu Ruang</div>
       </div>
     </div>
     <canvas id="tempChart"></canvas>
@@ -171,7 +169,7 @@
 
   <div class="bottom-row">
     <div class="card">
-      <div class="card-label">Rekomendasi Tanaman</div>
+      <div class="card-label">Rekomendasi Pengelolaan Tanah</div>
       <ul class="treatment-list" id="treatmentList">
         <li><div class="t-num">–</div><span>Menunggu data dari sensor...</span></li>
       </ul>
@@ -194,15 +192,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// ── KONFIGURASI – ganti jika token berubah ──────────────────
 const BLYNK_TOKEN  = "zy6XkbUg3_hugNLlcKd6Bq3l2a2dlHJG";
 const BLYNK_SERVER = "https://blynk.cloud";
-const FETCH_INTERVAL = 3000; // ms – fetch tiap 3 detik
+const FETCH_INTERVAL = 3000;
 
-// Virtual pin mapping (sesuai kode ESP32)
 const PIN = { ambient: "V0", object: "V1", treatment: "V2", validasi: "V5", koneksi: "V6" };
 
-// ── State ───────────────────────────────────────────────────
 const state = {
   ambient: null, object: null, landsat: null,
   notifHighSent: false, notifLowSent: false,
@@ -210,15 +205,14 @@ const state = {
   fetchOk: false,
 };
 
-// ── Chart setup ─────────────────────────────────────────────
 const ctx = document.getElementById('tempChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
   data: {
     labels: state.labels,
     datasets: [
-      { label:'Suhu Object',  data: state.objectData,  borderColor:'#22d3a5', backgroundColor:'rgba(34,211,165,.08)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
-      { label:'Suhu Ambient', data: state.ambientData, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.05)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
+      { label:'Suhu Permukaan', data: state.objectData,  borderColor:'#22d3a5', backgroundColor:'rgba(34,211,165,.08)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
+      { label:'Suhu Ruang',     data: state.ambientData, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.05)', borderWidth:2, pointRadius:2, tension:0.4, fill:true },
     ],
   },
   options: {
@@ -231,7 +225,6 @@ const chart = new Chart(ctx, {
   },
 });
 
-// ── Blynk API fetch ─────────────────────────────────────────
 async function fetchPin(pin) {
   const url = `${BLYNK_SERVER}/external/api/get?token=${BLYNK_TOKEN}&${pin}`;
   const res = await fetch(url);
@@ -263,7 +256,6 @@ async function fetchAllPins() {
   }
 }
 
-// ── Helpers ─────────────────────────────────────────────────
 function tempColor(v) {
   if (v > 45) return '#ef4444';
   if (v > 38) return '#f59e0b';
@@ -279,12 +271,36 @@ function setGauge(id, value) {
   el.style.stroke = tempColor(value);
 }
 
-function getTreatment(obj) {
-  if (obj > 45) return ['Siram tanah segera','Beri mulsa / penutup tanah','Hindari pemupukan'];
-  if (obj > 38) return ['Siram pagi / sore hari','Tambah mulsa organik','Kurangi paparan sinar matahari'];
-  if (obj >= 25) return ['Kondisi tanah optimal','Lanjutkan perawatan rutin','Pemupukan bisa dilakukan'];
-  if (obj >= 15) return ['Kurangi frekuensi penyiraman','Tambah pupuk organik','Tutup tanah di malam hari'];
-  return ['Lindungi tanaman dari dingin','Hentikan penyiraman','Gunakan plastik mulsa'];
+function getTreatment(temp) {
+  if (temp > 45)
+    return [
+      'Lakukan penyiraman segera untuk menurunkan suhu tanah',
+      'Gunakan mulsa atau penutup tanah untuk mengurangi evaporasi',
+      'Tunda pemupukan hingga suhu kembali normal'
+    ];
+  if (temp > 38)
+    return [
+      'Tingkatkan frekuensi penyiraman pada pagi atau sore hari',
+      'Tambahkan mulsa organik untuk menjaga kelembapan tanah',
+      'Kurangi paparan panas berlebih jika memungkinkan'
+    ];
+  if (temp >= 25)
+    return [
+      'Kondisi suhu tanah berada pada rentang optimal',
+      'Tidak diperlukan tindakan korektif saat ini',
+      'Lanjutkan pemantauan dan perawatan rutin'
+    ];
+  if (temp >= 15)
+    return [
+      'Kurangi intensitas penyiraman untuk mencegah kelembapan berlebih',
+      'Gunakan mulsa untuk mempertahankan suhu tanah',
+      'Lakukan pemantauan suhu secara berkala'
+    ];
+  return [
+    'Suhu tanah berada di bawah rentang optimal',
+    'Gunakan penutup tanah atau mulsa untuk mengurangi kehilangan panas',
+    'Tunda kegiatan budidaya yang sensitif terhadap suhu rendah'
+  ];
 }
 
 function runValidation() {
@@ -304,11 +320,11 @@ function runValidation() {
 
 function checkNotif(obj) {
   if (obj > 38 && !state.notifHighSent) {
-    showToast('⚠️ Suhu Tinggi!', `Suhu objek mencapai ${obj.toFixed(1)}°C. Segera siram tanah.`, '#ef4444');
+    showToast('⚠️ Suhu Tinggi!', `Suhu permukaan mencapai ${obj.toFixed(1)}°C. Segera siram tanah.`, '#ef4444');
     state.notifHighSent = true; state.notifLowSent = false;
   }
   if (obj < 15 && !state.notifLowSent) {
-    showToast('❄️ Suhu Rendah!', `Suhu objek hanya ${obj.toFixed(1)}°C. Lindungi tanaman.`, '#f59e0b');
+    showToast('❄️ Suhu Rendah!', `Suhu permukaan hanya ${obj.toFixed(1)}°C. Lindungi tanaman.`, '#f59e0b');
     state.notifLowSent = true; state.notifHighSent = false;
   }
   if (obj >= 15 && obj <= 38) { state.notifHighSent = false; state.notifLowSent = false; }
@@ -323,7 +339,6 @@ function updateUI(ambient, object) {
   setGauge('gaugeAmbient', ambient);
   setGauge('gaugeObject',  object);
 
-  // Update chart
   const now = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   if (state.labels.length > 40) {
     state.labels.shift(); state.ambientData.shift(); state.objectData.shift();
@@ -333,7 +348,6 @@ function updateUI(ambient, object) {
   state.objectData.push(+object.toFixed(2));
   chart.update();
 
-  // Treatment
   const items = getTreatment(object);
   document.getElementById('treatmentList').innerHTML =
     items.map((t,i) => `<li><div class="t-num">${i+1}</div><span>${t}</span></li>`).join('');
@@ -364,7 +378,6 @@ function showToast(title, msg, color) {
   setTimeout(() => t.classList.remove('show'), 4500);
 }
 
-// ── Start polling ───────────────────────────────────────────
 fetchAllPins();
 setInterval(fetchAllPins, FETCH_INTERVAL);
 </script>
